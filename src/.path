@@ -1,0 +1,12 @@
+./?.lua
+./?
+/src/bin/?.lua
+/src/bin/?
+/bin/?.lua
+/bin/?
+/usr/bin/?.lua
+/usr/bin/?
+/home/bin/?.lua
+/home/bin/?
+/install/bin/?.lua
+/install/bin/?

@@ -1,0 +1,30 @@
+function _G.write(...)
+	if not GFX then
+		return false
+	end
+	local args = {...}
+	if #args == 1 then
+		local msg = args[1]
+		for i = 1,#msg do
+			local char = msg:sub(i,i)
+			if char == "\n" or GFX_X >= GFX_W then
+				GFX_X = 0
+				GFX_Y = GFX_Y + 1
+			end
+			GFX_GPU.set(GFX_X,GFX_Y,char)
+			GFX_X = GFX_X + 1
+		end
+	else
+		for i,arg in ipairs(args) do
+			write(arg)
+		end
+	end
+	return true
+end
+function _G.print(...)
+	local values = {}
+	for i,text in ipairs({...}) do
+		table.insert(values,PRINT_PREFIX..text.."\n")
+	end
+	return write(table.unpack(values))
+end

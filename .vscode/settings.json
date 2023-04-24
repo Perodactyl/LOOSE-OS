@@ -1,0 +1,20 @@
+{
+	"Lua.diagnostics.globals": [
+		"checkArg",
+		"_BOOT_FN"
+	],
+	"Lua.diagnostics.disable": [
+		"unused-function",
+		"unused-local",
+		"trailing-space"
+	],
+	"Lua.workspace.library": [
+		"types"
+	],
+	"Lua.workspace.ignoreDir": [
+		".vscode",
+		"looseos-sys/src/boot/99_cleanup.lua"
+	],
+	"Lua.runtime.version": "Lua 5.2",
+	"explorer.excludeGitIgnore": true
+}

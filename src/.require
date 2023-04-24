@@ -1,0 +1,12 @@
+./?.lua
+/src/lib/?.lua
+/lib/?.lua
+/install/lib/?.lua
+/usr/lib/?.lua
+/home/lib/?.lua
+./?/init.lua
+/lib/?/init.lua
+/install/lib/?/init.lua
+/usr/lib/?/init.lua
+/home/lib/?/init.lua
+/src/lib/?/init.lua
