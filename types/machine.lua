@@ -1,7 +1,10 @@
 ---@meta
 ---@diagnostic disable: lowercase-global, missing-return
 
-
+---Because all strings pass through Java at some point it can be useful to handle them with Unicode support (since Java's internal string representation is UTF-8 encoded). In particular, screens display UTF-8 strings, meaning the related GPU functions expect UTF-8 strings. Also, keyboard input will generally be UTF-8 encoded, especially the clipboard.
+---***
+---However, keep in mind that while wide characters can be displayed, input and output of those is not fully supported in OpenOS's software (i.e. the shell, edit and Lua interpreter).
+unicode = {}
 ---This API mainly provides information about the computer a Lua state is running on, such as its address and uptime. It also contains functions for user management. This could belong to the os table, but in order to keep that “clean” it's in its own API.
 computer = {}
 ---The component API is used to access and interact with components available to a computer. Also see the page on component interaction.

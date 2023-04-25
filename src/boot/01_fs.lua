@@ -154,6 +154,30 @@ do
 		end
 	end
 
+	function fs.canonical(path) 
+		--Totally not ripped from OpenOS.
+		if string.gmatch(path,"$%.%/")() ~= nil then
+			return fs.canonical(string.gsub(path,"^%.%/",fs.wd))
+		end
+		local segments = {}
+		for part in path:gmatch("[^\\/]+") do
+			local current, up = part:find("^%.?%.$")
+			if current then
+				if up == 2 then
+					table.remove(segments)
+				end
+    		else
+      			table.insert(segments, part)
+    		end
+  		end
+		local result = table.concat(segments, "/")
+		if unicode.sub(path, 1, 1) == "/" then
+			return "/" .. result
+		else
+			return result
+		end
+	end
+
 	--- Returns the path that specifies what drive
 	--- @param path string
 	--- @return string|nil
@@ -187,7 +211,7 @@ do
 	--- @param path string
 	--- @return FilesystemProxy|nil result
 	function fs.getProxyOf(path)
-		path = string.gsub(path,"^%.%/",fs.wd)
+		path = fs.canonical(path)
 		local mount = fs.getMountSection(path)
 		if not mount then
 			return nil
@@ -203,7 +227,7 @@ do
 	--- @param path string
 	--- @return string|nil relativePath
 	function fs.getPathOf(path)
-		path = string.gsub(path,"^%.%/",fs.wd)
+		path = fs.canonical(path)
 		local mount = fs.getMountSection(path)
 		local notMount = path:sub(#mount)
 		return notMount
@@ -218,7 +242,7 @@ do
 	--- @param path string
 	--- @return boolean,string|nil
 	function fs.exists(path)
-		path = string.gsub(path,"^%.%/",fs.wd)
+		path = fs.canonical(path)
 		local component,loc = details(path)
 		if not component then
 			return false,"Filesystem could not be found"
@@ -234,7 +258,7 @@ do
 	--- @param mode? FSHandleMode
 	--- @return file|nil result, string? why
 	function fs.open(path,mode)
-		path = string.gsub(path,"^%.%/",fs.wd)
+		path = fs.canonical(path)
 		if not mode then
 			mode = "r"
 		end

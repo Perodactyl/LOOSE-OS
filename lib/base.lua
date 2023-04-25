@@ -43,7 +43,7 @@ do
 		local out = ""
 		while number > 0 do
 			local section = number % radix
-			out = out .. base.conversionTable[section]
+			out = base.conversionTable[section] .. out
 			number = math.floor(number / radix)
 		end
 		if #out == 0 then

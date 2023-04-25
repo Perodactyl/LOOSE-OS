@@ -156,10 +156,5 @@ do
 			end
 		end
 	end
-	print(require)
 	local base,why = require("base")
-	if not base and why then
-		print(why)
-	end
-	print(base)
 end

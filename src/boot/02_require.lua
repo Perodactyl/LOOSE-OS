@@ -60,9 +60,11 @@ do
 		end
 	end
 
-	function _G.require(modname)
-		if type(package.loaded[modname]) ~= nil then
-			return package.loaded[modname]
+	--- @param modname string The name of the module. This is not a path.
+	--- @param allowCache boolean If false, the file will be loaded from disk and not from cache.
+	function _G.require(modname,allowCache)
+		if allowCache == nil then
+			allowCache = true
 		end
 		local result = ""
 		--- @diagnostic disable-next-line: param-type-mismatch
@@ -76,16 +78,45 @@ do
 				end
 			else
 				local match = string.gsub(targ,"%?",modname)
-				if fs.exists(result) then
+				if fs.exists(match) then
 					result = match
+					break
 				end
-				break
 			end
 		end
 		if not result then
 			return nil,"Module not found"
 		end
-		print(result)
-		return result
+		result = fs.canonical(result)
+
+		if allowCache and type(package.loaded[modname]) ~= "nil" then
+			return table.unpack(package.loaded[modname])
+		end
+		if not allowCache then
+			package.loaded[modname] = nil
+		end
+
+		local data = fs.open(result,"r"):read(math.huge)
+		local exe,why = load(data)
+		if not exe then
+			return nil,"Failed to create executable from file",why
+		end
+		local output = { pcall(exe) }
+		local success = output[1]
+		local otherData = {}
+		for i,v in ipairs(output) do
+			if i ~= 1 then
+				table.insert(otherData,v)
+			end
+		end
+		if not success then
+			return nil,"Failed to execute file",table.unpack(otherData)
+		end
+		local finalOutput = otherData
+		if #otherData == 0 then
+			finalOutput = { true }
+		end
+		package.loaded[result] = finalOutput
+		return table.unpack(finalOutput)
 	end
 end
