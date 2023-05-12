@@ -6,7 +6,8 @@
 	"Lua.diagnostics.disable": [
 		"unused-function",
 		"unused-local",
-		"trailing-space"
+		"trailing-space",
+		"assign-type-mismatch"
 	],
 	"Lua.workspace.library": [
 		"types"

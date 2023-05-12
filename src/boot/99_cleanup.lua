@@ -1,4 +1,9 @@
 -- 99_cleanup
+
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+
+--Removes environment variables used during startup that are no longer relevant.
+--This file can be removed for debug purposes.
 do
 	local boot_env = get_boot_env()
 	if boot_env then

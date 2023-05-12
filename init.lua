@@ -1,4 +1,7 @@
 --init.lua
+
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+
 ---@diagnostic disable: cast-local-type, assign-type-mismatch
 do
 	_G.TERM_LEVEL = 0 --No terminal
@@ -20,7 +23,6 @@ do
 			end
 		end
 	end
-	boot_addr = "55f809f6-d1c3-43b9-b13b-ea1c957fecc3"
 
 	if not boot_addr then
 		error("No boot address found.")
@@ -46,7 +48,10 @@ do
 	_G.CORE_BOOT_FS = fs
 	local exe,why = load(code)
 	if exe then
-		exe()
+		local success,err = pcall(exe)
+		if not success then
+			error(err)
+		end
 	else
 		error("Failed to load /src/boot/00_core.lua: "..why)
 	end

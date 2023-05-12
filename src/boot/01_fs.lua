@@ -1,4 +1,7 @@
 -- 01_require
+
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+
 ---@diagnostic disable: return-type-mismatch, assign-type-mismatch
 do
 	local boot_env = get_boot_env()
@@ -100,7 +103,7 @@ do
 				bytes = bytes + #block
 				data = data .. block
 			elseif bytes == 0 then
-				return nil
+				return ""
 			else
 				break
 			end
@@ -288,6 +291,21 @@ do
 		else
 			return nil,"Path is not mounted"
 		end
+	end
+
+	--- Quickly reads a file. Does not specify the binary flag.
+	--- @param path string
+	--- @return string|nil data,string? why
+	function fs.readFile(path)
+		local file,openReason = fs.open(path,"r")
+		if not file then
+			return nil,openReason
+		end
+		local data,readReason = file:read(math.huge)
+		if not data then
+			return nil,readReason
+		end
+		return data
 	end
 
 	print("Locating drives...")

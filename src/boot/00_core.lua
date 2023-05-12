@@ -1,4 +1,7 @@
 --00_core
+
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+
 ---@diagnostic disable: assign-type-mismatch
 do
 	local fs = _G.CORE_BOOT_FS
@@ -62,6 +65,9 @@ do
 		error(err)
 	end
 
+	---Writes text to the screen.
+
+---@diagnostic disable-next-line: duplicate-set-field
 	function _G.write(...)
 		if not GFX then
 			return false
@@ -107,16 +113,30 @@ do
 	boot_env.PRINT_PREFIX = "[CORE] "
 	boot_env.PRINT_TIMESTAMP = true
 
+	GFX_GPU.setBackground(0x000000)
 	GFX_GPU.fill(1,1,GFX_W,GFX_H," ")
 
 	print("Loose OS Booting...")
 	if not _LOOSE then
+		GFX_GPU.setForeground(0xFFFF00)
 		print("WARNING: It is recommended to boot Loose OS using LOOSE BIOS.")
+		GFX_GPU.setForeground(0xFFFFFF)
 	end
+
+	local coreColor = 0x00FFFF
+	local bootFileColor = 0x0000FF
+
+	GFX_GPU.setForeground(coreColor)
 
 	print("Terminal Level: 1 (Basic print and write functions online)")
 	print("Loading substeps...")
 
+	local colorList = {
+		0xFF00FF,
+		0x00FF00,
+		0x0000FF
+	}
+	local currentColor = 1
 	local files = fs.list("/src/boot")
 	table.sort(files,function(a,b)
 		local stepA = tonumber(a:sub(1,2))
@@ -141,20 +161,30 @@ do
 				blocks = blocks + 1
 				code = code .. result
 			end
-			print("Read "..blocks.." blocks ("..#code.." bytes)")
+			print("Read "..blocks.." block(s) - "..#code.." bytes")
 			local exe,why = load(code)
 			if not exe then
 				print("Error loading "..file..": "..why)
 			else
+				GFX_GPU.setForeground(colorList[currentColor])
+				currentColor = currentColor+1
+				if currentColor > #colorList then
+					currentColor = 1
+				end
 				local wasSuccess,errMsg = pcall(exe)
+				GFX_GPU.setForeground(coreColor)
 				if not wasSuccess then
 					boot_env.PRINT_PREFIX = "[ERR] "
+					GFX_GPU.setForeground(0xFF0000)
 					print("Error running "..file..": ")
 					print(errMsg)
+					GFX_GPU.setForeground(coreColor)
 				end
 				boot_env.PRINT_PREFIX = "[CORE] "
 			end
 		end
 	end
-	local base,why = require("base")
+
+	boot_env_unlocked = false
+	print("Core locked. get_boot_env will no longer return a value.")
 end

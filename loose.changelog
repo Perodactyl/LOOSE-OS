@@ -1,0 +1,31 @@
+v0.1:
+---
+This was a failed version and it no longer exists.
+
+v0.2:
+---
+Implemented:
+- `dvs.buf`
+- `dvs.run`
+- `dvs.lua`
+- `dvs.addf`
+- `dvs.remf`
+- `dvs.search`
+- `dvs.fs`
+- `dvs.path`
+- `dvs.boot`
+- `dvs.parse`
+
+Note: `dvs.choose` is also present, but remains unimplemented.
+
+v0.2.1:
+---
+
+Implemented:
+- `dvs.choose`
+
+Better error handling
+
+Better docs for all entries in `dvs`
+
+`run` directive no longer empties the buffer. Use `clear` directive instead.

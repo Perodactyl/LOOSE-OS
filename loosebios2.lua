@@ -1,7 +1,17 @@
+--The LOOSE BIOS is able to boot LOOSE OS.
+--For some reason, it can't boot anything else.
+--And nothing else can boot LOOSE OS.
+--I need to fix that.
+
+--When minifying the file, we suggest removing some directives so that it fits in 4KB. We recommend baking the directives (remove all of them except the ones you need, then use them directly in the code.)
+
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+--In addition, any minified version of this code is under the same license. It is required to contain the above line.
+
 ---@diagnostic disable: assign-type-mismatch
 do
-	_G._BIOSVERSION  = "Loose BIOS v0.2"
-	_G._BIOS_VERSION = "Loose BIOS v0.2"
+	_G._BIOSVERSION  = "Loose BIOS v0.2.1"
+	_G._BIOS_VERSION = "Loose BIOS v0.2.1"
 	--- All things logged while LOOSE BIOS was in control.
 	--- @type string|nil
 	_G._LOOSE_LOG = ""
@@ -118,7 +128,7 @@ do
 	print("Size: "..w..", "..h)
 	write("-- ")
 	color(red)
-	write("Loose BIOS v0.2")
+	write("Loose BIOS v0.2.1")
 	color(std)
 	print(" --")
 	local dvs = {} --directives
@@ -170,13 +180,21 @@ do
 			err(reason)
 		end
 	end
+	---Adds `arg` to the current buffer.
+	---@param arg string The line to add.
 	function dvs.buf(arg)
 		buf = buf .. arg .. "\n"
 	end
+	---Executes the data in the buffer as lua.
 	function dvs.run()
 		dvs.lua(buf)
+	end
+	---Clears the buffer.
+	function dvs.clear()
 		buf = ""
 	end
+	---Runs a line of lua.
+	---@param code string The line of code to run. Note that `local` values will not be available in later `lua` directives.
 	function dvs.lua(code)
 		local err,reason = pcall(function()
 			load(code)()
@@ -186,9 +204,16 @@ do
 			err(reason)
 		end
 	end
+	---Adds a file to the search list.
+	---***
+	---When booting, Loose BIOS looks for files in the searchlist. If any are found, the drive is considered bootable. The found path is the file to be run.
+	---@param arg string The path to add.
 	function dvs.addf(arg)
 		table.insert(files,arg)
 	end
+	---Removes a file from the search list.
+	---@param arg string The path to remove.
+	---@see dvs.addf
 	function dvs.remf(arg)
 		for i,v in pairs(files) do
 			if v == arg then
@@ -197,64 +222,97 @@ do
 			end
 		end
 	end
-	function dvs.search()
-		print("Searching filesystems...")
-		print(" |ID"..((" "):rep(35)).."|CTL|Bootable"..((" "):rep(37)).."|")
+	---Searches for bootable filesystems and adds them to the list of options. Uses the searchlist.
+	---@param quiet string|boolean If `"true"` or `true`, does not log to the output.
+	---@see dvs.addf
+	function dvs.search(quiet)
+		if type(quiet) == "string" then
+			quiet = quiet == "true"
+		end
+		if not quiet then
+			print("Searching filesystems...")
+			print(" |ID"..((" "):rep(35)).."|CTL|Bootable"..((" "):rep(37)).."|")
+		end
 		for fs in component.list("filesystem") do
-			color(blu)
-			write("  "..fs.."  ")
 			local p = component.proxy(fs)
-			if p and p.isReadOnly() then
-				color(red)
-				write("RO  ")
-			elseif p then
-				color(grn)
-				write("RW  ")
-			else
-				color(mag)
-				write("??  ")
+			if not quiet then
+				color(blu)
+				write("  "..fs.."  ")
+				if p and p.isReadOnly() then
+					color(red)
+					write("RO  ")
+				elseif p then
+					color(grn)
+					write("RW  ")
+				else
+					color(mag)
+					write("??  ")
+				end
 			end
 			if p then
 				local path = nil
 				for i,file in ipairs(files) do
 					if p.exists(file) then
-						color(grn)
-						write("Y: ")
-						color(cyn)
-						print(file)
+						if not quiet then
+							color(grn)
+							write("Y: ")
+							color(cyn)
+							print(file)
+						end
 						path = file
 						break
 					end
 				end
-				if not path then
+				if not path and not quiet then
 					color(red)
 					print("N")
-				else
+				elseif path then
 					table.insert(options,{fs,path})
 				end
-			else
+			elseif not quiet then
 				color(yel)
 				print("UNKNOWN FS")
 			end
 		end
-		color(std)
+		if not quiet then
+			color(std)
+		end
 	end
 	local fsID = nil
 	local path = nil
+	---Sets the id of an FS to add to the searchlist manually.
+	---If both necessary paramaters are present, adds the filesystem.
+	---@param arg string The ID of a filesystem.
+	---@see dvs.path
+	---@see dvs.addf
 	function dvs.fs(arg)
 		fsID = arg
 		if fsID and path then
 			table.insert(options,{fsID,path})
+			fsID = nil
+			path = nil
 		end
 	end
+	---Sets the path to an FS to add to the searchlist manually.
+	---If both necessary paramaters are present, adds the filesystem.
+	---@param arg string The path of a bootable file in a filesystem.
+	---@see dvs.fs
+	---@see dvs.addf
 	function dvs.path(arg)
 		path = arg
 		if fsID and path then
 			table.insert(options,{fsID,path})
+			fsID = nil
+			path = nil
 		end
 	end
+	---Boots the given index into the option list.
+	---@param arg string|number|nil The index into the option list.
 	function dvs.boot(arg) -- Boot option no
 		arg = tonumber(arg)
+		if not arg then
+			arg = 1
+		end
 		if arg > #options or arg < 1 then
 			warn("WARN: Option out of bounds (1,"..#options.."): "..arg)
 			return
@@ -286,13 +344,112 @@ do
 		fs.close(handle)
 		boot(code,"Crashed when running code from "..descriptor)
 	end
-	function dvs.choose() -- List options for usr to choose from
+	---Allows the user to choose which bootable filesystem to boot.
+	---If only one FS is present, boots it.
+	---Requires a gpu,screen,and keyboard otherwise. The gpu is the only item explicitly checked for.
+	function dvs.choose(search) -- List options for usr to choose from
 		if #options == 1 then
+			print("Only one option to choose from, booting...")
 			dvs.boot("1")
+			return
+		end
+		local success,why = pcall(function()
+			if not gpu then
+				print("No GPU")
+				return
+			end
+			print("Selecting boot source...")
+			local selection = 1
+			local root = y-1
+			local prevLineCount = 0
+			local lastSearch = computer.uptime()
+			local exit = false
+			while not exit do
+				local lines = {}
+				table.insert(lines,{0xffffff,0x000000,"Select boot source:"})
+				for i,data in pairs(options) do
+					local id,filename = table.unpack(data)
+					if i == selection then
+						if gpu.getDepth() > 1 then
+							gpu.setBackground(0xAAAAAA)
+							gpu.setForeground(0x111111)
+						elseif gpu then
+							gpu.setBackground(0xFFFFFF)
+							gpu.setForeground(0x000000)
+						end
+					else
+						gpu.setBackground(0x000000)
+						gpu.setForeground(0xFFFFFF)
+					end
+					---@type FilesystemProxy
+					local component = component.proxy(id)
+					if component then
+						local rwMode = "RW"
+						if component.isReadOnly() then
+							rwMode = "RO"
+						end
+						table.insert(lines,{gpu.getForeground(),gpu.getBackground(),"("..rwMode..") "..id..": "..filename})
+					else
+						table.insert(lines,{gpu.getForeground(),gpu.getBackground(),"(??) "..id..": (COMPONENT MISSING)"})
+					end
+				end
+				for i = 1,math.max(#lines,prevLineCount) do
+					if i <= #lines then
+						local fg,bg,line = table.unpack(lines[i])
+						local spacing = (" "):rep(w-#line)
+						gpu.setForeground(fg)
+						gpu.setBackground(bg)
+						gpu.set(1,root+i,line)
+					else
+						gpu.setBackground(0x000000)
+						gpu.set(1,root+i,(" "):rep(w))
+					end
+				end
+				prevLineCount = #lines
+				while true do
+					local event = { computer.pullSignal() }
+					if event[1] ~= nil then
+						local component_event = event[1] == "component_added" or event[1] == "component_removed"
+						if component_event and search == "true" and event[3] == "filesystem" then
+							options = {}
+							dvs.search("true")
+						end
+						if event[1] == "key_down" then
+							local _,_,_,keycode,_ = table.unpack(event)
+							if keycode == 200 or keycode == 17 then --up or w
+								selection = selection-1
+							elseif keycode == 208 or keycode == 31 then --down or s
+								selection = selection+1
+							elseif keycode == 57 or keycode == 28 then --enter or space
+								print("Booted option #"..selection.."( disk id "..options[selection][1]..", file "..options[selection][2]..")")
+								dvs.boot(tostring(selection))
+								exit = true
+								break
+							end
+						end
+						break
+					end
+				end
+			end
+		end)
+		if not success then
+			color(yel)
+			print("Disk selector crashed.")
+			print("This may be a result of removing a disk.")
+			print("The system will now reboot.")
+			local start = computer.uptime()
+			computer.pushSignal("tick_pause")
+			computer.pullSignal()
+			while computer.uptime() - start < 1 do end
+			computer.shutdown(true)
 		end
 	end
 
-	---@param code string
+	---Parses a string into a list of directives and runs each.
+	---Each directive must be the name of a function in `dvs`.
+	---Everything after the first word(chunk seperated by a space) is passed in as an argument to the function.
+	---@param code string The code to parse. Seperated by newlines or semicolons.
+	---@see dvs
 	function dvs.parse(code)
 		if type(code) ~= "string" then
 			err("Failed to parse directives: Not a string ("..type(code).."): "..tostring(code))
@@ -334,8 +491,8 @@ do
 	end
 
 	-- Put user directives here
-	dvs.search()
-	dvs.boot("1")
+	dvs.search("true")
+	dvs.choose("true")
 	-- dvs.parse("search;boot1")
 
 	computer.pullSignal(1)

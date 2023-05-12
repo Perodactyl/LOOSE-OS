@@ -1,6 +1,10 @@
 ---@meta
 ---@diagnostic disable: lowercase-global, missing-return
 
+--By Perodactyl(https://github.com/Perodactyl). Minecraft username: Perodactus
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+
+
 ---Because all strings pass through Java at some point it can be useful to handle them with Unicode support (since Java's internal string representation is UTF-8 encoded). In particular, screens display UTF-8 strings, meaning the related GPU functions expect UTF-8 strings. Also, keyboard input will generally be UTF-8 encoded, especially the clipboard.
 ---***
 ---However, keep in mind that while wide characters can be displayed, input and output of those is not fully supported in OpenOS's software (i.e. the shell, edit and Lua interpreter).

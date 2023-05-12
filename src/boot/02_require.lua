@@ -1,4 +1,7 @@
 --02_require
+
+--This code is available under the GNU GPLv3 license. <https://www.gnu.org/licenses/gpl-3.0.en.html>
+
 ---@diagnostic disable: assign-type-mismatch,deprecated
 do
 	local boot_env = get_boot_env()

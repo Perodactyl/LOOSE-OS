@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../../OpenComputers"
+		}
+	],
+	"settings": {
+		"Lua.runtime.builtin": {
+			"package": "disable"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"aaron-bond.better-comments", //Comment colors by starting character
+			"informagico.vscode-lua-minify", //Self-Explanatory
+			"sumneko.lua", //Lua Language Server
+			"usernamehw.errorlens", //Errors stand out better
+			"wraith13.bracket-lens", //Show details about where each block starts on the line where it ends
+		]
+	}
+}
